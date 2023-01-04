@@ -6,14 +6,14 @@
       <collision name="collision">
         <geometry>
           <mesh>
-		    <uri>model://anchor/meshes/anchor.dae</uri>
+		    <uri>model://uwb_anchor/meshes/anchor.dae</uri>
 		  </mesh>
         </geometry>
       </collision>
       <visual name="visual">
         <geometry>
           <mesh>
-		    <uri>model://anchor/meshes/anchor.dae</uri>
+		    <uri>model://uwb_anchor/meshes/anchor.dae</uri>
 		  </mesh>
         </geometry>
       </visual>
