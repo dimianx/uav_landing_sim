@@ -1,0 +1,9 @@
+tag: 'iris'
+
+anchors: [
+  'anchor',
+  'anchor_0'
+]
+
+topic_prefix: '/uwb'
+update_rate: 15
