@@ -5,10 +5,16 @@ import numpy as np
 from mavros_msgs.msg import State
 from mavros_msgs.srv import CommandBool, SetMode
 from geometry_msgs.msg import PoseStamped, Quaternion
+from geographic_msgs.msg import GeoPoseStamped
 from sensor_msgs.msg import NavSatFix
 
+from pygeodesy.geoids import GeoidPGM
+from enum import Enum
 from tf.transformations import quaternion_from_euler
 
+class ReferenceType(Enum):
+    WGS84 = 0
+    AMSL  = 1
 class DroneController():
 
     def __init__(self):
@@ -46,7 +52,8 @@ class DroneController():
         self.global_pose_sub = rospy.Subscriber('/mavros/global_position/global', NavSatFix, self._global_position_callback)
 
     def _setup_publishers(self):
-        self.pos_setpoint_pub = rospy.Publisher('/mavros/setpoint_position/local', PoseStamped)
+        self.pos_setpoint_local_pub = rospy.Publisher('/mavros/setpoint_position/local', PoseStamped)
+        self.pos_setpoint_global_pub = rospy.Publisher('/mavros/setpoint_position/global', GeoPoseStamped)
 
     def _state_callback(self, msg):
         self.state = msg
@@ -91,6 +98,8 @@ class DroneController():
             except rospy.ServiceException as e:
                 rospy.logerr(e)
 
+    def _is_started(self):
+        return self.state.mode == self.state.MODE_PX4_OFFBOARD and self.state.armed()
     
     def _reach_local_position(self, x, y, z, yaw = np.pi / 2):
         msg = PoseStamped()
@@ -103,9 +112,21 @@ class DroneController():
         quaternion = quaternion_from_euler(0, 0, yaw)
         msg.pose.orientation = Quaternion(*quaternion)
 
-        self.pos_setpoint_pub.publish(msg)
+        self.pos_setpoint_local_pub.publish(msg)
 
-    def _is_at_local_position(self, x, y, z, offset):
+    def _reach_global_position(self, latitude, longitude, altitude, yaw = np.pi / 2):
+        msg = GeoPoseStamped()
+
+        msg.pose.position.latitude = latitude
+        msg.pose.position.longitude = longitude
+        msg.pose.position.altitude = altitude
+
+        quaternion = quaternion_from_euler(0,0, yaw)
+        msg.pose.orientation = Quaternion(*quaternion)
+
+        self.pos_setpoint_global_pub.publish(msg)
+
+    def _is_at_position(self, x, y, z, offset):
         desired = np.array((x, y, z))
         local_pos = np.array((
             self.local_position.pose.position.x,
@@ -116,7 +137,7 @@ class DroneController():
         return np.linalg.norm(desired - local_pos) < offset
 
     def start(self):
-        if self.state.mode == self.state.MODE_PX4_OFFBOARD and self.state.armed():
+        if self._is_started:
             rospy.loginfo('The controller is already started!')
             return
 
@@ -154,12 +175,16 @@ class DroneController():
 
                 self.rate.sleep()
 
-    def reach_drone_relative_position(self, x, y, z, offset, yaw = np.pi / 2):
+    def reach_local_pos(self, x, y, z, offset, yaw = np.pi / 2):
+        if not self._is_started:
+            rospy.logerr('The controller is not started!')
+            return
+
         x_rel = x + self.local_position.pose.position.x
         y_rel = y + self.local_position.pose.position.y
         z_rel = z + self.local_position.pose.position.z
 
-        while not self._is_at_local_position(x_rel, y_rel,z_rel, offset):
+        while not self._is_at_position(x_rel, y_rel,z_rel, offset):
 
             rospy.loginfo_throttle(1, 'Attempting to reach body relative position ( x: {}, y: {}, z: {} ) | Delta ( x: {}, y: {}, z: {} )' \
                 .format(
@@ -169,4 +194,27 @@ class DroneController():
                     abs(z_rel - self.local_position.pose.position.z)))
 
             self._reach_local_position(x_rel, y_rel, z_rel, yaw)
+        
+        rospy.loginfo('Target reached')
 
+    def reach_global_pos(self, latitude, longitude, altitude, altitude_reference, offset, yaw = np.pi / 2):
+        if not self._is_started:
+            rospy.logerr('The controller is not started!')
+            return
+
+        egm96 = GeoidPGM('/usr/share/GeographicLib/geoids/egm96-5.pgm', kind=-3)
+        alt = altitude - egm96(latitude, longitude) if altitude_reference == ReferenceType.WGS84 else altitude
+
+        while not self._is_at_position(latitude, longitude, alt, offset):
+
+            rospy.loginfo_throttle(1, 'Attempting to global position ( lat: {}, lon: {}, alt: {} ) | Delta ( lat: {}, lon: {}, alt: {} )' \
+                .format(
+                    latitude, longitude, alt,
+                    abs(latitude - self.global_position.latitude),
+                    abs(longitude - self.global_position.longitude), 
+                    abs(altitude - self.global_position.altitude if altitude_reference == ReferenceType.AMSL else \
+                        alt - self.global_position.altitude - egm96(latitude, longitude))))
+
+            self._reach_global_position(latitude, longitude, altitude, yaw)
+
+        rospy.loginfo('Target reached')
