@@ -115,11 +115,8 @@ class DroneController():
 
         return np.linalg.norm(desired - local_pos) < offset
 
-    def _is_started(self):
-        return self.state.mode == self.state.MODE_PX4_OFFBOARD and self.state.armed
-
     def start(self):
-        if self._is_started():
+        if self.state.mode == self.state.MODE_PX4_OFFBOARD and self.state.armed():
             rospy.loginfo('The controller is already started!')
             return
 
@@ -157,13 +154,6 @@ class DroneController():
 
                 self.rate.sleep()
 
-    def stop(self): 
-        while self._is_started:
-            self._set_arm(False)
-            self._set_mode(self.state.MODE_PX4_MANUAL)
-            
-            self.rate.sleep()
-
     def reach_drone_relative_position(self, x, y, z, offset, yaw = np.pi / 2):
         x_rel = x + self.local_position.pose.position.x
         y_rel = y + self.local_position.pose.position.y
@@ -179,3 +169,4 @@ class DroneController():
                     abs(z_rel - self.local_position.pose.position.z)))
 
             self._reach_local_position(x_rel, y_rel, z_rel, yaw)
+
