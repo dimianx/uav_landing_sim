@@ -2,8 +2,10 @@ tag: 'iris'
 
 anchors: [
   'anchor',
-  'anchor_0'
+  'anchor_0',
+  'anchor_1',
+  'anchor_2',
 ]
 
 topic_prefix: '/uwb'
-update_rate: 15
+update_rate: 10

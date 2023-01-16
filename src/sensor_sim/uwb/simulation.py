@@ -82,7 +82,7 @@ class UWBSimulator():
                 msg.estimated_range = est
                 msg.ground_truth_range = gt
 
-                rospy.loginfo(msg)
+                #rospy.loginfo(msg)
 
                 self.publishers[next(pub)].publish(msg)
                 self.update_rate.sleep()
