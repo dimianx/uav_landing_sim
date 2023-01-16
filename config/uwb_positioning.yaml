@@ -1,0 +1,13 @@
+anchor_positions: 
+  - [-2.5, 2.5, 0.0]
+  - [2.5, 2.5, 0.0]
+  - [-2.5, -2.5, 0.0]
+  - [2.5, -2.5, 0.0]
+
+uwb_topics:
+  - '/uwb/tag/iris/anchor/anchor'
+  - '/uwb/tag/iris/anchor/anchor_0'
+  - '/uwb/tag/iris/anchor/anchor_1'
+  - '/uwb/tag/iris/anchor/anchor_2'
+
+topic_prefix: '/uwb'  

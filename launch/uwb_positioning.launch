@@ -1,0 +1,6 @@
+<launch>
+    <node name="uwb_positioning" pkg="mp_uav_landing_sim" type="uwb_positioning.py" respawn="false" output="screen">
+        <rosparam file="$(find mp_uav_landing_sim)/config/uwb_positioning.yaml" command="load"/>
+    </node>
+
+</launch>

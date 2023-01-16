@@ -15,6 +15,7 @@ from tf.transformations import quaternion_from_euler
 class ReferenceType(Enum):
     WGS84 = 0
     AMSL  = 1
+
 class DroneController():
 
     def __init__(self):
@@ -45,7 +46,7 @@ class DroneController():
         self.set_arming_srv = rospy.ServiceProxy('/mavros/cmd/arming', CommandBool)
 
     def _setup_subscribers(self):
-        rospy.loginfo('Subscribing to mavros publishers')
+        rospy.loginfo('Subscribing to mavros topics')
 
         self.state_sub = rospy.Subscriber('/mavros/state', State, self._state_callback)
         self.local_pose_sub = rospy.Subscriber('/mavros/local_position/pose', PoseStamped, self._local_position_callback)
@@ -137,7 +138,7 @@ class DroneController():
         return np.linalg.norm(desired - local_pos) < offset
 
     def start(self):
-        if self._is_started:
+        if self._is_started():
             rospy.loginfo('The controller is already started!')
             return
 
@@ -207,7 +208,7 @@ class DroneController():
 
         while not self._is_at_position(latitude, longitude, alt, offset):
 
-            rospy.loginfo_throttle(1, 'Attempting to global position ( lat: {}, lon: {}, alt: {} ) | Delta ( lat: {}, lon: {}, alt: {} )' \
+            rospy.loginfo_throttle(1, 'Attempting to reach global position ( lat: {}, lon: {}, alt: {} ) | Delta ( lat: {}, lon: {}, alt: {} )' \
                 .format(
                     latitude, longitude, alt,
                     abs(latitude - self.global_position.latitude),
