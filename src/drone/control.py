@@ -137,7 +137,7 @@ class DroneController():
 
         return np.linalg.norm(desired - local_pos) < offset
 
-    def start(self):
+    def arm(self):
         if self._is_started():
             rospy.loginfo('The controller is already started!')
             return

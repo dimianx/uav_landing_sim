@@ -72,6 +72,7 @@ class LQRVANCEstimator():
             return
 
         point = PointStamped()
+        point.header.frame_id = 'uwb_tag_frame'
         point.header.stamp = rospy.Time.now()
         X = self._calculate_positions()
         point.point.x = X[0]
