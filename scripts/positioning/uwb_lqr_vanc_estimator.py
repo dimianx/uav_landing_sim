@@ -71,7 +71,7 @@ class LQRVANCEstimator():
 
         self.distances.update({args : msg.estimated_range})
         if any(math.isnan(distance) for distance in  self.distances.values()):
-            rospy.logerr('Out of ranges')
+            rospy.logwarn_once('Out of ranges')
             return
 
         pose = PoseStamped()
