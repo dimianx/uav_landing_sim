@@ -19,8 +19,6 @@ class ReferenceType(Enum):
 class DroneController():
 
     def __init__(self):
-        rospy.init_node('drone_controller', anonymous=True)
-
         self.state = State()
         self.local_position = PoseStamped()
         self.global_position = NavSatFix()
@@ -175,6 +173,7 @@ class DroneController():
                 self._set_arm(True)
 
                 self.rate.sleep()
+                
 
     def reach_local_pos(self, x, y, z, offset, yaw = np.pi / 2):
         if not self._is_started:

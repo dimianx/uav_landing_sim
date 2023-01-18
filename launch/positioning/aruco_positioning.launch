@@ -1,6 +1,0 @@
-<launch>
-    <node name="aruco_positioning" pkg="mp_uav_landing_sim" type="aruco_positioning.py" respawn="false" output="screen">
-        <rosparam file="$(find mp_uav_landing_sim)/config/positioning/aruco_positioning.yaml" command="load"/>
-    </node>
-
-</launch>

@@ -1,16 +1,15 @@
+#!/usr/bin/env python3
+
 import rospy
 import math
 import numpy as np
 
 from mp_uav_landing_sim.msg import UWBRange
-from geometry_msgs.msg import PointStamped 
+from geometry_msgs.msg import PoseStamped, Quaternion 
 
 class LQRVANCEstimator():
 
     def __init__(self):
-        rospy.init_node('uwb_lqr_vanc_estimator', anonymous=True)
-        rospy.loginfo('Initialized uwb_lqr_vanc_estimator node')
-
         self.uwb_subs = []
         self.distances = {}
         # Virtual anchor's position
@@ -19,6 +18,7 @@ class LQRVANCEstimator():
 
         self._read_config()
         self._setup_subscribers()
+        self._setup_publishers()
         self._create_distances_dict()
 
         self.anchor_positions.append(self.vanc_position)
@@ -26,7 +26,6 @@ class LQRVANCEstimator():
     def _read_config(self):
         self.anchor_positions = rospy.get_param('~anchor_positions', [])
         self.uwb_topics = rospy.get_param('~uwb_topics', [])
-        self.topic_prefix = rospy.get_param('~topic_prefix', '/positioning')
 
 
     def _setup_subscribers(self):
@@ -34,6 +33,10 @@ class LQRVANCEstimator():
 
         for topic in self.uwb_topics:
             self.uwb_subs.append(rospy.Subscriber(topic, UWBRange, self._positioning_callback, topic))
+
+    def _setup_publishers(self):
+        rospy.loginfo('Will publish to /positioning/uwb_lqr_vanc')
+        self.tag_pos_pub = rospy.Publisher('/positioning/uwb_lqr_vanc', PoseStamped, queue_size=10)
     
     def _create_distances_dict(self):
         for topic in self.uwb_topics:
@@ -71,18 +74,25 @@ class LQRVANCEstimator():
             rospy.logerr('Out of ranges')
             return
 
-        point = PointStamped()
-        point.header.frame_id = 'uwb_tag_frame'
-        point.header.stamp = rospy.Time.now()
+        pose = PoseStamped()
+        pose.header.frame_id = 'uwb_tag_frame'
+        pose.header.stamp = rospy.Time.now()
         X = self._calculate_positions()
-        point.point.x = X[0]
-        point.point.y = X[1]
-        point.point.z = X[2]
+        pose.pose.position.x = -X[0]
+        pose.pose.position.y = -X[1]
+        pose.pose.position.z = -X[2]
+        pose.pose.orientation = Quaternion(0,0,0,0)
             
-        rospy.loginfo(point)
-        self.tag_pos_pub.publish(point)
+        rospy.loginfo(pose)
+        self.tag_pos_pub.publish(pose)
 
     def start(self):
-        rospy.loginfo('Will publish to {}'.format(self.topic_prefix + '/uwb_lqr_vanc'))
-        self.tag_pos_pub = rospy.Publisher(self.topic_prefix + '/uwb_lqr_vanc', PointStamped, queue_size=10)
+        rospy.init_node('uwb_lqr_vanc_estimator', anonymous=True)
+        rospy.loginfo('Initialized uwb_lqr_vanc_estimator node')
         rospy.spin()
+
+if __name__ == '__main__':
+    try:
+        LQRVANCEstimator().start()
+    except rospy.ROSInterruptException:
+        pass

@@ -7,5 +7,4 @@ anchors: [
   'anchor_2',
 ]
 
-topic_prefix: '/uwb'
 update_rate: 10
