@@ -10,6 +10,9 @@ from geometry_msgs.msg import PoseStamped, Quaternion
 class LQRVANCEstimator():
 
     def __init__(self):
+        rospy.init_node('uwb_lqr_vanc_estimator', anonymous=True)
+        rospy.loginfo('Initialized uwb_lqr_vanc_estimator node')
+
         self.uwb_subs = []
         self.distances = {}
         # Virtual anchor's position
@@ -87,8 +90,6 @@ class LQRVANCEstimator():
         self.tag_pos_pub.publish(pose)
 
     def start(self):
-        rospy.init_node('uwb_lqr_vanc_estimator', anonymous=True)
-        rospy.loginfo('Initialized uwb_lqr_vanc_estimator node')
         rospy.spin()
 
 if __name__ == '__main__':

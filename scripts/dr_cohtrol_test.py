@@ -4,6 +4,7 @@ import rospy
 from drone.control import DroneController
 
 if __name__ == '__main__':
+    rospy.init_node('dr_test')
     try:
         c = DroneController()   
         c.arm()

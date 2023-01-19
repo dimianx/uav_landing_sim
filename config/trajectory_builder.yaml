@@ -1,0 +1,4 @@
+pose_topic: '/positioning/aruco'
+xy_tolerance: 0.1
+z_tolerance: 0.25
+landing_step: 0.1

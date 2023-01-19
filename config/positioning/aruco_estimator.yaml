@@ -1,3 +1,3 @@
 camera_topic_prefix: '/iris_bottom_fpv/usb_cam/'
 dictionary_type: 'DICT_6X6_250'
-marker_length: 0.5
+marker_length: 0.7
