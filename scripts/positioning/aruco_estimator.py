@@ -13,6 +13,9 @@ from tf.transformations import quaternion_from_matrix
 class ArucoEstimator():
 
     def __init__(self):
+        rospy.init_node('aruco_estimator', anonymous=True)
+        rospy.loginfo('Initialized aruco_estimator node')
+        
         self.bridge = CvBridge()
 
         self.ARUCO_DICT = {
@@ -99,9 +102,9 @@ class ArucoEstimator():
             pose = PoseStamped()
             pose.header.frame_id = 'camera_frame'
             pose.header.stamp = rospy.Time.now()
-            pose.pose.position.x = tvecs[0][0][0]
-            pose.pose.position.y = tvecs[0][0][1]
-            pose.pose.position.z = tvecs[0][0][2]
+            pose.pose.position.x = -tvecs[0][0][1]
+            pose.pose.position.y = tvecs[0][0][0]
+            pose.pose.position.z = -tvecs[0][0][2]
             pose.pose.orientation = Quaternion(*quaternion)
 
             self.cam_pos_pub.publish(pose)
@@ -130,8 +133,6 @@ class ArucoEstimator():
 
 
     def start(self):
-        rospy.init_node('aruco_estimator', anonymous=True)
-        rospy.loginfo('Initialized aruco_estimator node')
         rospy.spin()
 
 if __name__ == '__main__':

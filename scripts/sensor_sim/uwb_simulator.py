@@ -12,6 +12,8 @@ from uwb_interpolation.rmse_interpolation import RMSESplineInterpolator
 from uwb_interpolation.sigma_interpolation import SigmaSplineInterpolator
 
 class UWBSimulator():
+    rospy.init_node('uwb_simulator', anonymous=True)
+    rospy.loginfo('Initialized uwb_simulator node')
 
     def __init__(self):
         self._read_config()
@@ -68,9 +70,6 @@ class UWBSimulator():
         return ground_truth, estimated
 
     def start(self):
-        rospy.init_node('uwb_simulator', anonymous=True)
-        rospy.loginfo('Initialized uwb_simulator node')
-
         while not rospy.is_shutdown():
             pub = itertools.count(0)
 
