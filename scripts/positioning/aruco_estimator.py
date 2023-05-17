@@ -2,12 +2,14 @@
 
 import rospy
 import cv2
-import cv2.aruco as aruco
+import os
+import aruco
 import numpy as np
-
+import random
+from env_disturbances import image_disturbances
 from cv_bridge import CvBridge, CvBridgeError
 from geometry_msgs.msg import PoseStamped, Quaternion
-from sensor_msgs.msg import CameraInfo, Image
+from sensor_msgs.msg import Image
 from tf.transformations import quaternion_from_matrix
 
 class ArucoEstimator():
@@ -15,45 +17,21 @@ class ArucoEstimator():
     def __init__(self):
         rospy.init_node('aruco_estimator', anonymous=True)
         rospy.loginfo('Initialized aruco_estimator node')
-        
+
+        self.detector = aruco.FractalDetector()
+        self.detector.setConfiguration(aruco.FractalMarkerSet.FRACTAL_5L_6)
         self.bridge = CvBridge()
 
-        self.ARUCO_DICT = {
-	        'DICT_4X4_50': aruco.DICT_4X4_50,
-            'DICT_4X4_10': aruco.DICT_4X4_100,
-            'DICT_4X4_250': aruco.DICT_4X4_250,
-            'DICT_4X4_1000': aruco.DICT_4X4_1000,
-            'DICT_5X5_50': aruco.DICT_5X5_50,
-            'DICT_5X5_100': aruco.DICT_5X5_100,
-            'DICT_5X5_250': aruco.DICT_5X5_250,
-            'DICT_5X5_1000': aruco.DICT_5X5_1000,
-            'DICT_6X6_50': aruco.DICT_6X6_50,
-            'DICT_6X6_100': aruco.DICT_6X6_100,
-            'DICT_6X6_250': aruco.DICT_6X6_250,
-            'DICT_6X6_1000': aruco.DICT_6X6_1000,
-            'DICT_7X7_50': aruco.DICT_7X7_50,
-            'DICT_7X7_100': aruco.DICT_7X7_100,
-            'DICT_7X7_250': aruco.DICT_7X7_250,
-            'DICT_7X7_1000': aruco.DICT_7X7_1000,
-            'DICT_ARUCO_ORIGINAL': aruco.DICT_ARUCO_ORIGINAL,
-            'DICT_APRILTAG_16h5': aruco.DICT_APRILTAG_16h5,
-            'DICT_APRILTAG_25h9': aruco.DICT_APRILTAG_25h9,
-            'DICT_APRILTAG_36h10': aruco.DICT_APRILTAG_36h10,
-            'DICT_APRILTAG_36h11': aruco.DICT_APRILTAG_36h11
-        }
-
         self._read_config()
-        self._get_calib_info()
-        self.detector = aruco.ArucoDetector(self.dictionary, self.detector_params)
+        self._load_camera_params()
         self._setup_subscribers()
         self._setup_publishers()
 
 
     def _read_config(self):
         self.camera_topic_prefix = rospy.get_param('~camera_topic_prefix')
-        self.dictionary = aruco.getPredefinedDictionary(self.ARUCO_DICT.get(rospy.get_param('~dictionary_type')))
-        self.detector_params = aruco.DetectorParameters()
-        self.marker_length = rospy.get_param('~marker_length')
+        self.camera_parameters = rospy.get_param('~camera_parameters_file')
+        self.marker_size = rospy.get_param('~marker_size')
 
     def _setup_subscribers(self):
         rospy.loginfo('Subscribing to {}image_raw'.format(self.camera_topic_prefix))
@@ -65,29 +43,47 @@ class ArucoEstimator():
         rospy.loginfo('Will publish to /positioning/aruco')
         self.cam_pos_pub = rospy.Publisher('/positioning/aruco/', PoseStamped, queue_size = 10)
 
-    def _get_calib_info(self):
-        rospy.loginfo('Getting camera matrix and distortion coeffs.')
-        msg = rospy.wait_for_message(self.camera_topic_prefix+'camera_info', CameraInfo, timeout = 10)
-        self.camera_matrix = np.reshape(msg.K, (3, 3))
-        self.distortion_coeffs = msg.D
-        rospy.loginfo('Got camera matrix and distortion coeffs.')
+    def _load_camera_params(self):
+        rospy.loginfo('Loading camera parameters')
+        
+        camparam = aruco.CameraParameters()
+        camparam.readFromXMLFile(filePath=os.path.join(
+            os.path.dirname(__file__),
+            '..', '..', 'config', 'camera_calibration', 
+            self.camera_parameters)
+        )
 
+        if camparam.isValid():
+            self.detector.setParams(camparam, self.marker_size)
+        else:
+            raise Exception('Invalid camera parameters!')
 
     def _image_callback(self, msg):
         try:
-            frame = self.bridge.imgmsg_to_cv2(msg, 'bgr8')
+            frame = self.bridge.imgmsg_to_cv2(msg, 'bgr8')#
+            #frame = image_disturbances.adjust_brightness(image_disturbances.add_streaks(self.bridge.imgmsg_to_cv2(msg, 'bgr8'), noise_value=100, angle=random.randint(-30,30)), 0.5)
         except CvBridgeError as e:
             rospy.logerr(e)
             return
 
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        corners, _, _ = self.detector.detectMarkers(gray)
-        if len(corners) > 0:
-            rospy.loginfo_once('Marker found')
+        detected = self.detector.detect(gray)
 
-            rvecs, tvecs, _ = aruco.estimatePoseSingleMarkers(corners, self.marker_length, self.camera_matrix, self.distortion_coeffs)
-            aruco.drawDetectedMarkers(frame, corners)            
-            cv2.drawFrameAxes(frame, self.camera_matrix, self.distortion_coeffs, rvecs, tvecs, self.marker_length / 2)
+        if detected:
+            rospy.loginfo_once('Marker found')
+            self.detector.drawMarkers(frame)
+            
+            markers = self.detector.getMarkers()
+            for marker in markers:
+                marker.draw(frame, np.array([255, 255, 255]), 2)
+
+            self.detector.draw2d(frame)
+
+            if self.detector.poseEstimation():
+                tvec = self.detector.getTvec()
+                rvec = self.detector.getRvec()
+
+                self.detector.draw3d(frame)
 
             rot_mat =  np.array([
                 [0, 0, 0, 0],
@@ -96,26 +92,26 @@ class ArucoEstimator():
                 [0, 0, 0, 1]],
                 dtype=float
             )
-            rot_mat[:3, :3], _ = cv2.Rodrigues(rvecs)
+            rot_mat[:3, :3], _ = cv2.Rodrigues(rvec)
             quaternion = quaternion_from_matrix(rot_mat)
 
             pose = PoseStamped()
             pose.header.frame_id = 'camera_frame'
             pose.header.stamp = rospy.Time.now()
-            pose.pose.position.x = -tvecs[0][0][1]
-            pose.pose.position.y = tvecs[0][0][0]
-            pose.pose.position.z = -tvecs[0][0][2]
+            pose.pose.position.x = tvec[0][0]
+            pose.pose.position.y = -tvec[1][0]
+            pose.pose.position.z = tvec[2][0]
             pose.pose.orientation = Quaternion(*quaternion)
 
             self.cam_pos_pub.publish(pose)
 
-            cv2.putText(frame, str(f'{tvecs[0][0][0]:.{4}f}'+ '    ' +
-                               f'{tvecs[0][0][1]:.{4}f}'    + '    ' +
-                               f'{tvecs[0][0][2]:.{4}f}'    + '    '), (20, 70+20),
+            cv2.putText(frame, str(f'{tvec[0][0]:.{4}f}'+ '    ' +
+                               f'{-tvec[1][0]:.{4}f}'    + '    ' +
+                               f'{tvec[2][0]:.{4}f}'    + '    '), (20, 70+20),
                                cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), 3, cv2.LINE_AA)
-            cv2.putText(frame, str(f'{tvecs[0][0][0]:.{4}f}' + '    ' +
-                               f'{tvecs[0][0][1]:.{4}f}'     + '    ' +
-                               f'{tvecs[0][0][2]:.{4}f}' + '    '), (20, 70+20),
+            cv2.putText(frame, str(f'{tvec[0][0]:.{4}f}' + '    ' +
+                               f'{-tvec[1][0]:.{4}f}'     + '    ' +
+                               f'{tvec[2][0]:.{4}f}' + '    '), (20, 70+20),
                                cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 0), 1, cv2.LINE_AA)
 
         else:

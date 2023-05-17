@@ -1,6 +1,0 @@
-<launch>
-    <node name="trajectory_builder" pkg="mp_uav_landing_sim" type="trajectory_builder.py" respawn="false" output="screen">
-        <rosparam file="$(find mp_uav_landing_sim)/config/trajectory_builder.yaml" command="load"/>
-    </node>
-
-</launch>
