@@ -12,15 +12,17 @@ from uwb_interpolation.rmse_interpolation import RMSESplineInterpolator
 from uwb_interpolation.sigma_interpolation import SigmaSplineInterpolator
 
 class UWBSimulator():
-    rospy.init_node('uwb_simulator', anonymous=True)
-    rospy.loginfo('Initialized uwb_simulator node')
 
     def __init__(self):
-        self._read_config()
-        self._create_publishers()
+        rospy.init_node('uwb_simulator', anonymous=True)
+        rospy.loginfo('Initialized uwb_simulator node')
 
         self.tag_position = {}
         self.anchor_positions = {}
+        self.anchors = ['anchor0', 'anchor1', 'anchor2', 'anchor3']
+
+        self._read_config()
+        self._create_publishers()
 
         self.model_states_sub = rospy.Subscriber('/gazebo/model_states', ModelStates, self._get_positions_callback)
         rospy.loginfo('Subscribed to \'/gazebo/model_states\' publisher')
@@ -31,7 +33,8 @@ class UWBSimulator():
     def _read_config(self):
         self.update_rate = rospy.Rate(rospy.get_param('~update_rate', 10))
         self.tag = rospy.get_param('~tag', 'iris')
-        self.anchors = rospy.get_param('~anchors', ['uwb_anch'])
+        self.ugv = rospy.get_param('~ugv', 'husky')
+        self.anchor_coordinates = rospy.get_param('~anchor_coordinates', [])
 
     def _create_publishers(self):
         self.publishers = []
@@ -46,15 +49,24 @@ class UWBSimulator():
         poses = msg.pose
 
         tag_idx = names.index(self.tag)
+        ugv_idx = names.index(self.ugv)
         self.tag_position.update({self.tag : poses[tag_idx].position})
 
+        anch_idx = 0
+
         for anchor in self.anchors:
-            anchor_idx = names.index(anchor)
-            self.anchor_positions.update({anchor : poses[anchor_idx].position})
+            ugv_pos = np.array([
+                poses[ugv_idx].position.x,
+                poses[ugv_idx].position.y,
+                poses[ugv_idx].position.z
+            ])
+
+            self.anchor_positions.update({anchor : np.add(ugv_pos, np.array(self.anchor_coordinates[anch_idx]))})
+            anch_idx += 1
 
     @staticmethod
     def _calculate_ground_truth_distance(tag_pos, anch_pos):
-        return math.sqrt((tag_pos.x - anch_pos.x) ** 2 + (tag_pos.y - anch_pos.y) ** 2 + (tag_pos.z - anch_pos.z) ** 2)
+        return math.sqrt((tag_pos.x - anch_pos[0]) ** 2 + (tag_pos.y - anch_pos[1]) ** 2 + (tag_pos.z - anch_pos[2]) ** 2)
         
     def _estimate_uwb_range(self, anchor_pos):
         tag_pos = next(iter(self.tag_position.items()))[1]
@@ -81,8 +93,6 @@ class UWBSimulator():
                 msg.status = 0 if math.isnan(est) else 1
                 msg.estimated_range = est
                 msg.ground_truth_range = gt
-
-                #rospy.loginfo(msg)
 
                 self.publishers[next(pub)].publish(msg)
                 self.update_rate.sleep()

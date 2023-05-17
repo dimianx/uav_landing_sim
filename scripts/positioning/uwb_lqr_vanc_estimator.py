@@ -63,31 +63,29 @@ class LQRVANCEstimator():
 
     def _positioning_callback(self, msg, args):
         if len(self.distances) < 4 or len(self.anchor_positions) < 4:
-            rospy.logerr('The minimum number of anchors must be >= 4')
-            return
+            raise Exception('The minimum number of anchors must be >= 4')
 
         if len(self.distances) != len(self.anchor_positions):
             rospy.loginfo(self.distances)
             rospy.loginfo(self.anchor_positions)
-            rospy.logerr('The number of distance topics and anchor points is not equal')
-            return
+            raise Exception('The number of distance topics and anchor points is not equal')
 
         self.distances.update({args : msg.estimated_range})
         if any(math.isnan(distance) for distance in  self.distances.values()):
             rospy.logwarn_once('Out of ranges')
             return
 
-        pose = PoseStamped()
-        pose.header.frame_id = 'uwb_tag_frame'
-        pose.header.stamp = rospy.Time.now()
-        X = self._calculate_positions()
-        pose.pose.position.x = -X[0]
-        pose.pose.position.y = -X[1]
-        pose.pose.position.z = -X[2]
-        pose.pose.orientation = Quaternion(0,0,0,0)
-            
-        rospy.loginfo(pose)
-        self.tag_pos_pub.publish(pose)
+        if args == list(self.distances.keys())[-2]:
+            pose = PoseStamped()
+            pose.header.frame_id = 'uwb_tag_frame'
+            pose.header.stamp = rospy.Time.now()
+            X = self._calculate_positions()
+            pose.pose.position.x = -X[0]
+            pose.pose.position.y = -X[1]
+            pose.pose.position.z = -X[2] / 3
+            pose.pose.orientation = Quaternion(0,0,0,0)
+                        
+            self.tag_pos_pub.publish(pose)
 
     def start(self):
         rospy.spin()

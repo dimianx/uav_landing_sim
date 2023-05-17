@@ -18,6 +18,7 @@ catkin_python_setup()
 add_message_files(
     FILES
         UWBRange.msg
+        Intensity.msg
 )
 
 generate_messages(

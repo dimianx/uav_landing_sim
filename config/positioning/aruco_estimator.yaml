@@ -1,3 +1,4 @@
 camera_topic_prefix: '/iris_bottom_fpv/usb_cam/'
-dictionary_type: 'DICT_6X6_250'
-marker_length: 0.7
+camera_parameters_file: 'calib.yaml'
+dictionary_type: 'DICT_6X6_50'
+marker_size: 1  
