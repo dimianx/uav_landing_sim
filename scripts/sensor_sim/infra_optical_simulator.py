@@ -11,7 +11,7 @@ from mp_uav_landing_sim.msg import Intensity
 from tf.transformations import euler_from_quaternion
 
 from mp_uav_landing_sim.msg import Intensity
-
+from env_disturbances import env_disturbances
 class InfraOpticalSimulator():
 
     def __init__(self):
@@ -37,6 +37,9 @@ class InfraOpticalSimulator():
         self.half_theta_transmitter = rospy.get_param('~half_theta_transmitter', 1.57)
         self.gamma = rospy.get_param('~gamma', 3.14 / 10)
         self.diode_pairs_coordinates = rospy.get_param('~diode_pairs_coordinates', [])
+        self.ena_disturbances = rospy.get_param('~ena_disturbances', False)
+        self.visibility = rospy.get_param('~visibility', 0)
+        self.wavelength = rospy.get_param('~wavelength', 0)
 
     def _create_publishers(self):
         self.publishers = []
@@ -105,6 +108,15 @@ class InfraOpticalSimulator():
 
         I3 = self.I0 / (R2 ** 2) * (math.cos(omega) ** n) * (math.cos(beta + self.gamma) ** m)
         I4 = self.I0 / (R2 ** 2) * (math.cos(omega) ** n) * (math.cos(beta - self.gamma) ** m)
+
+        if self.ena_disturbances:
+            K1 = env_disturbances.get_extinction_coeff(self.visibility, self.wavelength, R1)
+            K2 = env_disturbances.get_extinction_coeff(self.visibility, self.wavelength, R2)
+
+            I1 = I1 * K1
+            I2 = I2 * K1
+            I3 = I3 * K2
+            I4 = I4 * K2
 
         if isinstance(I1, complex): I1 = float(I1.real)
         if isinstance(I2, complex): I2 = float(I2.real)

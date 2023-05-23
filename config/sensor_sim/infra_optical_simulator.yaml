@@ -13,3 +13,7 @@ diode_pairs_coordinates:
 
 
 update_rate: 7182
+
+ena_disturbances: False
+wavelength: 950
+visibility: 6
