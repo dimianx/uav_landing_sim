@@ -6,11 +6,11 @@ import os
 import aruco
 import numpy as np
 import random
-from env_disturbances import image_disturbances
 from cv_bridge import CvBridge, CvBridgeError
 from geometry_msgs.msg import PoseStamped, Quaternion
 from sensor_msgs.msg import Image
 from tf.transformations import quaternion_from_matrix
+from env_disturbances import env_disturbances
 
 class ArucoEstimator():
 
@@ -27,11 +27,14 @@ class ArucoEstimator():
         self._setup_subscribers()
         self._setup_publishers()
 
-
     def _read_config(self):
         self.camera_topic_prefix = rospy.get_param('~camera_topic_prefix')
         self.camera_parameters = rospy.get_param('~camera_parameters_file')
         self.marker_size = rospy.get_param('~marker_size')
+        self.ena_disturbances = rospy.get_param('~ena_disturbances', False)
+        self.brightness = rospy.get_param('~brightness', 1)
+        self.haze_coeff = rospy.get_param('~haze_coeff', 0)
+        self.rain_value = rospy.get_param('~rain_value', 30000)
 
     def _setup_subscribers(self):
         rospy.loginfo('Subscribing to {}image_raw'.format(self.camera_topic_prefix))
@@ -60,8 +63,15 @@ class ArucoEstimator():
 
     def _image_callback(self, msg):
         try:
-            frame = self.bridge.imgmsg_to_cv2(msg, 'bgr8')#
-            #frame = image_disturbances.adjust_brightness(image_disturbances.add_streaks(self.bridge.imgmsg_to_cv2(msg, 'bgr8'), noise_value=100, angle=random.randint(-30,30)), 0.5)
+            if self.ena_disturbances:
+                frame = env_disturbances.adjust_brightness(
+                    env_disturbances.add_streaks(
+                        env_disturbances.add_haze(
+                            self.bridge.imgmsg_to_cv2(msg, 'bgr8'), self.haze_coeff),
+                        noise_value=self.rain_value, angle=random.randint(-30,30)), 
+                    self.brightness)
+            else:
+                frame = self.bridge.imgmsg_to_cv2(msg, 'bgr8')#
         except CvBridgeError as e:
             rospy.logerr(e)
             return

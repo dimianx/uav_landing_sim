@@ -47,3 +47,13 @@ def add_haze(image, haze_coef):
      cv2.addWeighted(overlay, haze_coef, output, 1 - haze_coef, 0, output)
      img = output.copy()
      return img
+
+def get_extinction_coeff(visibility, wavelength, r):
+    if visibility < 6:
+        size_dist = 0.585 * visibility ** (1/3)
+    elif 6 < visibility < 15:
+        size_dist = 1.3
+    else:
+        size_dist = 1.6
+
+    return np.exp((-3.91/visibility * (wavelength / 0.55) ** -size_dist) * r)
