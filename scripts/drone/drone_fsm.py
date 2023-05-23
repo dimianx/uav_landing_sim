@@ -23,7 +23,8 @@ class Start(State):
 
             attempts_count = rospy.get_param('~attempts_count')
             if self.count > attempts_count:
-                rospy.signal_shutdown('Attempts exceeded')
+                rospy.delete_param('~target_waypoint')
+                rospy.delete_param('~takeof_altitude')
 
             while not (rospy.has_param('~target_waypoint') or rospy.has_param('~takeoff_altitude')):
                 rospy.loginfo_once('[FSM] Waiting for target waypoint. Load target_waypoint and takeoff_altitude params.')

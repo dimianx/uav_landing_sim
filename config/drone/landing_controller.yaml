@@ -1,4 +1,4 @@
-pose_topic: '/positioning/aruco'
+pose_topic: '/positioning/infra_optical'
 
 a: 20
 b: -17

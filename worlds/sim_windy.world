@@ -38,8 +38,8 @@
       <xyzOffset>1 0 0</xyzOffset>
       <windDirectionMean>-1 1 0</windDirectionMean>
       <windVelocityMean>3</windVelocityMean>
-      <windVelocityVariance>15</windVelocityVariance>
-      <windVelocityMax>15</windVelocityMax>
+      <windVelocityVariance>9</windVelocityVariance>
+      <windVelocityMax>9</windVelocityMax>
       <windGustDirection>-1 0 0</windGustDirection>
       <windGustDuration>0</windGustDuration>
       <windGustStart>0</windGustStart>
