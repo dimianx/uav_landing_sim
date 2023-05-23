@@ -47,8 +47,6 @@ class LandingController():
         rospy.loginfo('Subscribing to /landing/enabled')
         self.land_ena_sub = rospy.Subscriber('/landing/enabled', Bool, self._land_ena_callback)
 
-        #self.uwb_sub = rospy.Subscriber('/positioning/uwb_lqr_vanc', PoseStamped, self._positioning_callback2)
-
     def _setup_publishers(self):
         rospy.loginfo('Will publish to /landing/setpoint_vel')
         self.vel_pub = rospy.Publisher('/landing/setpoint_vel', TwistStamped, queue_size = 10)
@@ -59,11 +57,6 @@ class LandingController():
         self.relative_pos[0] = msg.pose.position.x
         self.relative_pos[1] = msg.pose.position.y
         self.relative_pos[2] = msg.pose.position.z
-
-    #def _positioning_callback2(self, msg):
-    #    self.timestamp = msg.header.stamp
-
-    #    self.relative_pos[2] = msg.pose.position.z
 
     def _land_ena_callback(self, msg):
         self.land_ena = msg.data
@@ -92,7 +85,6 @@ class LandingController():
             stamp = self.timestamp
             if stamp == self.prev_timestamp:
                 self.time += self.dt
-                #rospy.logwarn(self.time)
                 if self.time >= 1.:
                     self.target_lost = True
             else:
@@ -116,7 +108,7 @@ class LandingController():
 
                 self.prev_error[i] = error[i]
                 self.I_prev[i] = I
-                command[i] = (P + I + D) #/ 1.7 # 1.3            
+                command[i] = (P + I + D)          
 
             if abs(error[0]) <= 0.45 and abs(error[1]) <= 0.5:
                 if abs(error[2]) <= 0.35:
@@ -137,7 +129,6 @@ class LandingController():
                     command[1] = 0
 
             self.prev_timestamp = stamp
-#            rospy.logwarn(self.relative_pos)
             self._send_vel(command)
             self.rate.sleep()
 

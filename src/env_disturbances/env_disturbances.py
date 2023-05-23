@@ -56,4 +56,4 @@ def get_extinction_coeff(visibility, wavelength, r):
     else:
         size_dist = 1.6
 
-    return np.exp((-3.91/visibility * (wavelength / 0.55) ** -size_dist) * r)
+    return np.exp((-3.91/visibility * (wavelength / 0.55) ** -size_dist) * r / 1000)
