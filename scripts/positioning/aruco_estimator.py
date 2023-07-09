@@ -4,8 +4,8 @@ import rospy
 import cv2
 import os
 import aruco
-import numpy as np
 import random
+import numpy as np
 from cv_bridge import CvBridge, CvBridgeError
 from geometry_msgs.msg import PoseStamped, Quaternion
 from sensor_msgs.msg import Image
@@ -63,15 +63,17 @@ class ArucoEstimator():
 
     def _image_callback(self, msg):
         try:
+            frame = self.bridge.imgmsg_to_cv2(msg, 'bgr8')#
+            
             if self.ena_disturbances:
-                frame = env_disturbances.adjust_brightness(
-                    env_disturbances.add_streaks(
-                        env_disturbances.add_haze(
-                            self.bridge.imgmsg_to_cv2(msg, 'bgr8'), self.haze_coeff),
-                        noise_value=self.rain_value, angle=random.randint(-30,30)), 
-                    self.brightness)
-            else:
-                frame = self.bridge.imgmsg_to_cv2(msg, 'bgr8')#
+                if not self.haze_coeff == 0:
+                    frame = env_disturbances.add_haze(frame, self.haze_coeff)
+
+                if not self.rain_value == 0:
+                    frame = env_disturbances.add_streaks(frame, noise_value=self.rain_value, angle=random.randint(-30,30))
+
+                if not self.brightness == 1:
+                    frame = env_disturbances.adjust_brightness(frame, self.brightness)
         except CvBridgeError as e:
             rospy.logerr(e)
             return
