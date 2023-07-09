@@ -42,7 +42,7 @@ class Takeoff(State):
 
     def execute(self, _):
         try:
-            rospy.loginfo('Executing state TAKEOFF')
+            rospy.loginfo('[FSM] Executing state TAKEOFF')
 
             takeoff_altitude = rospy.get_param('~takeoff_altitude')
 

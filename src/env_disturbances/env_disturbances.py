@@ -11,10 +11,9 @@ def adjust_brightness(image, bright):
     
      return image1
 
-def add_streaks(image, noise_value = 30000, length = 25, angle = 0, w = 1, beta = 0.8):
+def add_streaks(image, noise_value = 30, length = 25, angle = 0, w = 1, beta = 0.8):
      noise = np.random.uniform(0, 256, image.shape[0:2])
-     v = noise_value * 0.01    
-     noise[np.where(noise < (256 - v))] = 0
+     noise[np.where(noise < (256 - noise_value))] = 0
  
      k = np.array([[0, 0.1, 0],
                   [0.1, 8, 0.1],

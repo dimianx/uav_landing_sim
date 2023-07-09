@@ -2,7 +2,7 @@ camera_topic_prefix: '/iris_bottom_fpv/usb_cam/'
 camera_parameters_file: 'calib.yaml'
 marker_size: 1 
 
-ena_disturbances: False
+ena_disturbances: True
 brightness: 1
 haze_coeff: 0
-rain_value: 30000
+rain_value: 0
