@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>mp_uav_landing_sim</name>
+  <name>uav_landing_sim</name>
   <version>0.0.0</version>
   <description>The mp_uav_landing_sim package</description>
-  <maintainer email="dimitri@todo.todo">Dimitri Anikin</maintainer>
+  <maintainer email="dmitry.anikin@proton.me">Dmitry Anikin</maintainer>
   
-  <license>MIT</license>
+  <license>GPL-3.0</license>
 
   <buildtool_depend>catkin</buildtool_depend>
   
