@@ -70,7 +70,7 @@ This project involves the development of a simulation model for the autonomous l
 ### Worlds
 
 - `sim_windy.world` - Gazebo world file for simulating windy conditions.
-- `sim,word` - General Gazebo world file.
+- `sim.word` - General Gazebo world file.
 
 ## Simulation Details
 The simulation employs the following technologies for accurate landing:
