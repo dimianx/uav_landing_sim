@@ -249,6 +249,6 @@ If no arguments are provided, the default behavior is:
 >**Note:** On the first launch, Gazebo may take some time to download required models from the internet. It might look like Gazebo is frozen — just wait a bit until everything loads.
 
 # References
-- [My bachelor thesis](https://elib.spbstu.ru/dl/3/2023/vr/vr23-3642.pdf/en/info)
+- [Bachelor thesis](https://elib.spbstu.ru/dl/3/2023/vr/vr23-3642.pdf/en/info)
 - [Anikin Dmitry, et al. "Autonomous landing algorithm for UAV on a mobile robotic platform with a fractal marker." International Conference on Interactive Collaborative Robotics. Cham: Springer Nature Switzerland, 2023.](https://doi.org/10.1007/978-3-031-43111-1_32)
 - [Ryabinov A. V., Saveliev A. I., Anikin D. A. Modeling the Effect of External Actions on the Process of Automated Landing of a Quadcopter UAV on a Moving Platform Using Technical Vision //Automatic Control and Computer Sciences. – 2024. – Т. 58. – №. 7. – С. 957-968.](https://doi.org/10.3103/S014641162470038X)
