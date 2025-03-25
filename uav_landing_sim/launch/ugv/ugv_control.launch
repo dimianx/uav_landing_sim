@@ -1,0 +1,6 @@
+<launch>
+    <node name="ugv_control" pkg="uav_landing_sim" type="ugv_control.py" respawn="false" output="screen" launch-prefix="bash -c 'sleep 25.0; $0 $@' ">
+        <rosparam file="$(find uav_landing_sim)/config/ugv/ugv_control.yaml" command="load"/>
+    </node>
+
+</launch>

@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <arg name="robot_namespace" default="/"/>
+  <arg name="top_plate_enable" default="false"/>
+
+  <arg name="x" default="0.0"/>
+  <arg name="y" default="0.0"/>
+  <arg name="z" default="0.0"/>
+  <arg name="yaw" default="0.0"/>
+
+  <group ns="$(arg robot_namespace)">
+      <include file="$(find husky_control)/launch/control.launch">
+      </include>
+      <include file="$(find husky_control)/launch/teleop.launch">
+        <arg name="joystick" value="false" />
+      </include>
+      
+      <param name="robot_description" 
+        command="$(find xacro)/xacro $(find uav_landing_sim)/models/husky/urdf/ugv.urdf.xacro 
+        robot_namespace:=$(arg robot_namespace)" />
+      <node name="spawn_husky_model" pkg="gazebo_ros" type="spawn_model"
+        args="-x $(arg x)
+              -y $(arg y)
+              -z $(arg z)
+              -Y $(arg yaw)
+              -unpause
+              -urdf
+              -param robot_description
+              -model husky
+              -robot_namespace $(arg robot_namespace)" />
+
+  </group>
+</launch>
