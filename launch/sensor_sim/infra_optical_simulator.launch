@@ -1,6 +1,0 @@
-<launch>
-    <node name="infra_optical_simulator" pkg="mp_uav_landing_sim" type="infra_optical_simulator.py" respawn="false" output="screen">
-        <rosparam file="$(find mp_uav_landing_sim)/config/sensor_sim/infra_optical_simulator.yaml" command="load"/>
-    </node>
-
-</launch>

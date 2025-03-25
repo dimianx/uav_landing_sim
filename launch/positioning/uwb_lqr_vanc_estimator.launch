@@ -1,6 +1,0 @@
-<launch>
-    <node name="uwb_lqr_vanc_estimator" pkg="mp_uav_landing_sim" type="uwb_lqr_vanc_estimator.py" respawn="false" output="screen">
-        <rosparam file="$(find mp_uav_landing_sim)/config/positioning/uwb_lqr_vanc_estimator.yaml" command="load"/>
-    </node>
-
-</launch>
