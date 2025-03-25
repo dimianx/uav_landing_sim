@@ -1,0 +1,6 @@
+<launch>
+    <node name="landing_controller" pkg="uav_landing_sim" type="landing_controller.py" respawn="false" output="screen">
+        <rosparam file="$(find uav_landing_sim)/config/drone/landing_controller.yaml" command="load"/>
+    </node>
+
+</launch>

@@ -1,0 +1,6 @@
+<launch>
+    <node name="aruco_estimator" pkg="uav_landing_sim" type="aruco_estimator.py" respawn="false" output="screen">
+        <rosparam file="$(find uav_landing_sim)/config/positioning/aruco_estimator.yaml" command="load"/>
+    </node>
+
+</launch>
