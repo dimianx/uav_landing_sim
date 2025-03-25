@@ -13,7 +13,7 @@
     <arg name="use_sim_time" value="true"/>
     <arg name="gui" value="true"/>
     <arg name="headless" value="false"/>
-    <arg name="verbose" value="true"/>
+    <arg name="verbose" value="false"/>
   </include>
 
   <include file="$(find uav_landing_sim)/launch/spawners/spawn_iris.launch">
@@ -47,8 +47,17 @@
   <include file="$(find uav_landing_sim)/launch/ugv/ugv_control.launch">
   </include>
 
-  <include file="$(find uav_landing_sim)/launch/drone/landing_controller.launch">
-  </include>
+  <group if="$(eval positioning == 'aruco')">
+    <include file="$(find uav_landing_sim)/launch/drone/landing_controller.launch">
+      <arg name="pose_topic" value="/positioning/aruco"/>
+    </include> 
+  </group>
+
+  <group if="$(eval positioning == 'uwb')">
+    <include file="$(find uav_landing_sim)/launch/drone/landing_controller.launch">
+      <arg name="pose_topic" value="/positioning/uwb_lqr_vanc"/>
+    </include> 
+  </group>
 
   <node name="rqt_image_view" pkg="rqt_image_view" type="rqt_image_view" output="screen" args="/iris_bottom_fpv/usb_cam/image_info"/>
 

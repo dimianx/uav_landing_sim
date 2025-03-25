@@ -6,7 +6,7 @@ import itertools
 import numpy as np
 
 from gazebo_msgs.msg import ModelStates
-from mp_uav_landing_sim.msg import UWBRange
+from uav_landing_sim.msg import UWBRange
 
 from uwb_interpolation.rmse_interpolation import RMSESplineInterpolator
 from uwb_interpolation.sigma_interpolation import SigmaSplineInterpolator

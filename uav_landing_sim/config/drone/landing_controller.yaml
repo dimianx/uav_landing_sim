@@ -1,5 +1,3 @@
-pose_topic: '/positioning/aruco'
-
 a: 20
 b: -17
 Vz0: 1.5
