@@ -2,7 +2,7 @@
 
  # 
  # This file is part of the uav_landing_sim distribution (https://github.com/dimianx/uav_landing_sim).
- # Copyright (c) 2025 Dmitry Anikin.
+ # Copyright (c) 2024-2025 Dmitry Anikin <dmitry.anikin@proton.me>.
  # 
  # This program is free software: you can redistribute it and/or modify  
  # it under the terms of the GNU General Public License as published by  
